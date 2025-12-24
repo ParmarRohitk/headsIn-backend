@@ -1,6 +1,5 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
-import { json } from 'body-parser';
 import candidateRoutes from './routes/candidate.routes';
 import creditRoutes from './routes/credit.routes';
 import { AppError } from './utils/AppError';
@@ -10,7 +9,7 @@ const app = express();
 
 // Middlewares
 app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
-app.use(json({ limit: '16kb' }));
+app.use(express.json({ limit: '16kb' }));
 
 // Routes
 app.get('/', (req: Request, res: Response) => {
@@ -25,8 +24,8 @@ app.get('/api/v1/health', (req: Request, res: Response) => {
     res.status(200).json(new ApiResponse(200, { timestamp: new Date() }, 'Health check passed'));
 });
 
-// Handle undefined routes
-app.all('(.*)', (req: Request, res: Response, next: NextFunction) => {
+// Handle undefined routes (404)
+app.use((req: Request, res: Response, next: NextFunction) => {
     next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 
