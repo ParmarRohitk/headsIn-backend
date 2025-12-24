@@ -1,15 +1,19 @@
 import app from './app';
-// import pool from './config/database';
-
-const PORT = process.env.PORT || 3000;
+import { config } from './config/config';
 
 const startServer = async () => {
     try {
-        // await pool.query('SELECT 1'); // Test DB connection
-        // console.log('Database connected successfully');
+        const server = app.listen(config.port, () => {
+            console.log(`Server running in ${config.env} mode on port ${config.port}`);
+        });
 
-        app.listen(PORT, () => {
-            console.log(`Server running on port ${PORT}`);
+        // Handle unhandled promise rejections
+        process.on('unhandledRejection', (err: any) => {
+            console.error('UNHANDLED REJECTION! 💥 Shutting down...');
+            console.error(err.name, err.message);
+            server.close(() => {
+                process.exit(1);
+            });
         });
     } catch (error) {
         console.error('Failed to start server:', error);
