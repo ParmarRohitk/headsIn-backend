@@ -26,7 +26,7 @@ app.get('/api/v1/health', (req: Request, res: Response) => {
 });
 
 // Handle undefined routes
-app.all('*', (req: Request, res: Response, next: NextFunction) => {
+app.all('(.*)', (req: Request, res: Response, next: NextFunction) => {
     next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 
