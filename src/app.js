@@ -13,6 +13,9 @@ const app = (0, express_1.default)();
 app.use((0, cors_1.default)({ origin: process.env.CORS_ORIGIN || '*' }));
 app.use((0, body_parser_1.json)());
 // Routes
+app.get('/', (req, res) => {
+    res.json({ message: 'HeadsIn Backend is running!', version: '1.0.0' });
+});
 app.use('/api/v1/candidates', candidate_routes_1.default);
 // app.use('/api/v1/campaigns', campaignRoutes);
 app.use('/api/v1/credits', credit_routes_1.default);

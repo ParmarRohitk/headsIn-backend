@@ -11,6 +11,10 @@ app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
 app.use(json());
 
 // Routes
+app.get('/', (req, res) => {
+    res.json({ message: 'HeadsIn Backend is running!', version: '1.0.0' });
+});
+
 app.use('/api/v1/candidates', candidateRoutes);
 // app.use('/api/v1/campaigns', campaignRoutes);
 app.use('/api/v1/credits', creditRoutes);
