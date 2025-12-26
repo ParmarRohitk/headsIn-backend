@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { CampaignService } from '../../services/campaign/campaignService';
 import { catchAsync } from '../../utils/catchAsync';
 import { ApiResponse } from '../../utils/ApiResponse';
+import { AppError } from '../../utils/AppError';
 
 const campaignService = new CampaignService();
 
@@ -20,12 +21,18 @@ export const createCampaign = catchAsync(async (req: Request, res: Response) => 
 
 export const getCampaignSequences = catchAsync(async (req: Request, res: Response) => {
     const { id } = req.params;
+    if (!id) {
+        throw new AppError('Campaign ID is required', 400);
+    }
     const result = await campaignService.getSequencesByCampaign(parseInt(id));
     res.status(200).json(new ApiResponse(200, result, 'Sequences retrieved successfully'));
 });
 
 export const getCampaignAnalytics = catchAsync(async (req: Request, res: Response) => {
     const { id } = req.params;
+    if (!id) {
+        throw new AppError('Campaign ID is required', 400);
+    }
     const result = await campaignService.getDetailedAnalytics(parseInt(id));
     res.status(200).json(new ApiResponse(200, result, 'Analytics retrieved successfully'));
 });
