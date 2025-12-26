@@ -99,21 +99,49 @@ export class SearchService {
         };
     }
 
-    async getSearchResults(searchId: number, page: number = 1, limit: number = 12) {
-        // For this mock, we return random candidates from the DB
-        // In a real app, we would join with search_results table linked to search_id
-
+    async getSearchResults(searchId: number, page: number = 1, limit: number = 12, filters: SearchFilters = {}) {
         const offset = (page - 1) * limit;
-        const candidatesResult = await query(
-            `SELECT * FROM candidates ORDER BY id DESC LIMIT $1 OFFSET $2`,
-            [limit, offset]
-        );
+        const values: any[] = [limit, offset];
+        let queryStr = `
+            SELECT c.*, 
+                   array_agg(cs.skill_name) as skills,
+                   EXISTS(SELECT 1 FROM shortlists WHERE candidate_id = c.id AND user_id = (SELECT user_id FROM search_history WHERE id = $3)) as is_shortlisted,
+                   (FLOOR(RANDOM() * 30) + 70) as match_percent
+            FROM candidates c
+            LEFT JOIN candidate_skills cs ON c.id = cs.candidate_id
+            WHERE 1=1
+        `;
 
-        const totalResult = await query(`SELECT COUNT(*) FROM candidates`);
+        let paramCount = 4;
+        if (filters.location) {
+            queryStr += ` AND c.location ILIKE $${paramCount}`;
+            values.push(`%${filters.location}%`);
+            paramCount++;
+        }
+
+        if (filters.experience_min) {
+            queryStr += ` AND c.experience_years >= $${paramCount}`;
+            values.push(filters.experience_min);
+            paramCount++;
+        }
+
+        queryStr += `
+            GROUP BY c.id
+            ORDER BY c.id DESC 
+            LIMIT $1 OFFSET $2
+        `;
+
+        const candidatesResult = await query(queryStr, [limit, offset, searchId, ...values.slice(2)]);
+
+        const totalResult = await query(`SELECT COUNT(*) FROM candidates c WHERE 1=1 ${filters.location ? " AND c.location ILIKE '%" + filters.location + "%'" : ""} ${filters.experience_min ? " AND c.experience_years >= " + filters.experience_min : ""}`);
         const total = parseInt(totalResult.rows[0].count);
 
         return {
-            candidates: candidatesResult.rows,
+            candidates: candidatesResult.rows.map(c => ({
+                ...c,
+                skills: (c.skills || []).filter((s: any) => s !== null),
+                match_percent: parseInt(c.match_percent)
+            })),
             pagination: {
                 page,
                 limit,

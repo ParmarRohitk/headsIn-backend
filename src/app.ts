@@ -2,13 +2,36 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import candidateRoutes from './routes/candidate.routes';
 import creditRoutes from './routes/credit.routes';
+import campaignRoutes from './routes/campaign.routes';
 import { AppError } from './utils/AppError';
 import { ApiResponse } from './utils/ApiResponse';
 
 const app = express();
 
 // Middlewares
-app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
+// Middlewares
+const allowedOrigins = [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'http://localhost:5173', // Vite default
+    process.env.CORS_ORIGIN
+].filter(Boolean) as string[];
+
+app.use(cors({
+    origin: (origin, callback) => {
+        // Allow requests with no origin (like mobile apps or curl)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes('*')) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
+
 app.use(express.json({ limit: '16kb' }));
 
 // Routes
@@ -18,6 +41,7 @@ app.get('/', (req: Request, res: Response) => {
 
 app.use('/api/v1/candidates', candidateRoutes);
 app.use('/api/v1/credits', creditRoutes);
+app.use('/api/v1/campaigns', campaignRoutes);
 
 // Health check
 app.get('/api/v1/health', (req: Request, res: Response) => {
