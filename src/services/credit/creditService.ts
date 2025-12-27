@@ -15,11 +15,11 @@ export class CreditService {
         return result.rows[0];
     }
 
-    async initializeCredits(userId: number) {
-        const defaultCredits = 100;
+    async initializeCredits(userId: number, defaultCredits: number = 1000) {
         const result = await query(
             `INSERT INTO credits (user_id, total_credits, available_credits) 
        VALUES ($1, $2, $2) 
+       ON CONFLICT DO NOTHING
        RETURNING *`,
             [userId, defaultCredits]
         );
@@ -33,13 +33,22 @@ export class CreditService {
             await client.query('BEGIN');
 
             // Check available credits
-            const creditResult = await client.query(
+            let creditResult = await client.query(
                 `SELECT * FROM credits WHERE user_id = $1 FOR UPDATE`,
                 [userId]
             );
 
+            // Auto-initialize credits if user doesn't exist
             if (creditResult.rows.length === 0) {
-                throw new Error('User credits not found');
+                await client.query(
+                    `INSERT INTO credits (user_id, total_credits, available_credits) 
+                     VALUES ($1, 1000, 1000)`,
+                    [userId]
+                );
+                creditResult = await client.query(
+                    `SELECT * FROM credits WHERE user_id = $1 FOR UPDATE`,
+                    [userId]
+                );
             }
 
             const userCredits = creditResult.rows[0];
