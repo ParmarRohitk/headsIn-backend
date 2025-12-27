@@ -2,7 +2,7 @@ services:
   - type: web
     name: headsin-backend
     env: node
-    buildCommand: npm install --include=dev && npm run build
+    buildCommand: npm install --include=dev && npm run build && npm run migrate
     startCommand: npm start
     envVars:
       - key: NODE_ENV

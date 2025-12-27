@@ -16,3 +16,8 @@ CREATE TABLE IF NOT EXISTS credit_transactions (
     description TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Seed default credits for user_id 1
+INSERT INTO credits (user_id, total_credits, used_credits, available_credits)
+VALUES (1, 1000, 0, 1000)
+ON CONFLICT DO NOTHING;
