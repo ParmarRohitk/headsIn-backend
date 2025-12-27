@@ -10,13 +10,17 @@ import { query } from './config/database';
 const app = express();
 
 // Middlewares
-// Middlewares
+// Parse CORS origins from environment variable (comma-separated)
+const envOrigins = process.env.CORS_ORIGIN
+    ? process.env.CORS_ORIGIN.split(',').map(origin => origin.trim())
+    : [];
+
 const allowedOrigins = [
     'http://localhost:3000',
     'http://localhost:3001',
     'http://localhost:5173', // Vite default
-    'https://headsin-backend.onrender.com',
-    process.env.CORS_ORIGIN
+    'https://headsin-saral-ai.vercel.app', // Production frontend
+    ...envOrigins
 ].filter(Boolean) as string[];
 
 app.use(cors({
