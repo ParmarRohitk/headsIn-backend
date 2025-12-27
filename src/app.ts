@@ -5,6 +5,7 @@ import creditRoutes from './routes/credit.routes';
 import campaignRoutes from './routes/campaign.routes';
 import { AppError } from './utils/AppError';
 import { ApiResponse } from './utils/ApiResponse';
+import { query } from './config/database';
 
 const app = express();
 
@@ -14,6 +15,7 @@ const allowedOrigins = [
     'http://localhost:3000',
     'http://localhost:3001',
     'http://localhost:5173', // Vite default
+    'https://headsin-backend.onrender.com',
     process.env.CORS_ORIGIN
 ].filter(Boolean) as string[];
 
@@ -46,6 +48,16 @@ app.use('/api/v1/campaigns', campaignRoutes);
 // Health check
 app.get('/api/v1/health', (req: Request, res: Response) => {
     res.status(200).json(new ApiResponse(200, { timestamp: new Date() }, 'Health check passed'));
+});
+
+// DB check
+app.get('/dbcheck', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        await query('SELECT 1');
+        res.status(200).json(new ApiResponse(200, { timestamp: new Date() }, 'Database connection successful'));
+    } catch (error) {
+        next(new AppError('Database connection failed', 500));
+    }
 });
 
 // Handle undefined routes (404)
