@@ -21,10 +21,10 @@ export class SearchService {
 
         // 2. Initialize stages
         const stages = [
-            'Fetch profiles',
-            'Semantic search and LLM match',
-            'Ranking and scoring',
-            'Preparing insights'
+            'Fetching profile data from multiple sources',
+            'Running semantic search and LLM matching',
+            'Ranking candidates using weighted scoring',
+            'Preparing insights and match list'
         ];
 
         for (const stage of stages) {
@@ -42,10 +42,10 @@ export class SearchService {
 
     private async processSearchStages(searchId: number, queryText: string, filters: SearchFilters) {
         const stages = [
-            'Fetch profiles',
-            'Semantic search and LLM match',
-            'Ranking and scoring',
-            'Preparing insights'
+            'Fetching profile data from multiple sources',
+            'Running semantic search and LLM matching',
+            'Ranking candidates using weighted scoring',
+            'Preparing insights and match list'
         ];
 
         try {
