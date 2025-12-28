@@ -34,12 +34,38 @@ export class CampaignService {
         });
     }
 
-    async createCampaign(userId: number, name: string, type: string) {
-        const result = await query(
+    async createCampaign(userId: number, name: string, type: string, steps?: any[]) {
+        const campaignResult = await query(
             'INSERT INTO campaigns (user_id, name, type, status) VALUES ($1, $2, $3, $4) RETURNING *',
-            [userId, name, type, 'draft']
+            [userId, name, type, 'active']
         );
-        return result.rows[0];
+        const campaign = campaignResult.rows[0];
+
+        if (type === 'email' && steps && steps.length > 0) {
+            // Create default sequence
+            const sequenceResult = await query(
+                'INSERT INTO email_sequences (campaign_id, name, status) VALUES ($1, $2, $3) RETURNING id',
+                [campaign.id, name, 'active']
+            );
+            const sequenceId = sequenceResult.rows[0].id;
+
+            // Insert steps
+            for (let i = 0; i < steps.length; i++) {
+                const step = steps[i];
+                await query(
+                    'INSERT INTO sequence_steps (sequence_id, step_order, delay_days, subject, body_content) VALUES ($1, $2, $3, $4, $5)',
+                    [
+                        sequenceId,
+                        i + 1,
+                        step.type === 'delay' ? step.delayDays : 0,
+                        step.type === 'email' ? step.subject : null,
+                        step.type === 'email' ? step.content : null
+                    ]
+                );
+            }
+        }
+
+        return campaign;
     }
 
     async getSequencesByCampaign(campaignId: number) {
